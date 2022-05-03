@@ -1,0 +1,44 @@
+name: production deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+      id-token: write
+      actions: write
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Create a website
+        run: mkdir -p build && echo -e "<pre>$(date -u)\n$GITHUB_SHA\n$GITHUB_REF</pre>" > build/index.html
+
+      - name: Deploy to netlify (production)
+        id: deploy-to-netlify
+        run: echo "::set-output name=NETLIFY_LOG_JSON::$(npx netlify-cli deploy --dir=./build --prod --json | tr -d '\n')"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - run: echo ${{ steps.deploy-to-netlify.outputs.NETLIFY_LOG_JSON }}
+
+      - name: Create commit comment
+        uses: peter-evans/commit-comment@v2
+        with:
+          body: |
+            ### <span aria-hidden="true">✅</span> Deploy Production ready!
+            |  Name | Link |
+            |---------------------------------|------------------------|
+            |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
+            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(steps.deploy-to-netlify.outputs.NETLIFY_LOG_JSON).logs }} |
+            |<span aria-hidden="true">😎</span> Production URL | ${{ fromJson(steps.deploy-to-netlify.outputs.NETLIFY_LOG_JSON).url }} |
+            |<span aria-hidden="true">😎</span> Deploy Preview | ${{ fromJson(steps.deploy-to-netlify.outputs.NETLIFY_LOG_JSON).deploy_url }} |
