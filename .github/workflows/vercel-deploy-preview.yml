@@ -50,7 +50,7 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/runs/${{ github.run_id }}?check_suite_focus=true |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
 
       - name: Update comment
         if: success() && github.event.number && steps.fc.outputs.comment-id != ''
@@ -65,4 +65,4 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/runs/${{ github.run_id }}?check_suite_focus=true |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
