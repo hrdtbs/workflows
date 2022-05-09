@@ -1,4 +1,4 @@
-name: deploy preview
+name: deploy preview on netlify
 
 on:
   pull_request:
