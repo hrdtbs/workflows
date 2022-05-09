@@ -32,11 +32,10 @@ jobs:
       - name: Get Deployment
         id: vercel-deployment
         run: |
-          developmentUrl=${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}
+          developmentUrl=${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}          
           echo "::set-output name=DEPLOYMENT::$(curl -X GET https://api.vercel.com/v11/now/deployments/get?url=${developmentUrl#*//} -H 'Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}' -H 'Content-Type: application/json')"
-
+          echo "RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
       - run: echo ${{ steps.vercel-deployment.outputs.DEPLOYMENT }}
-
       - name: Find Comment
         if: success() && github.event.number
         uses: peter-evans/find-comment@v2
@@ -58,7 +57,7 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
 
       - name: Update comment
         if: success() && github.event.number && steps.fc.outputs.comment-id != ''
@@ -73,4 +72,4 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
