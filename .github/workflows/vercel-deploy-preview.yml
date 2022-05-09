@@ -1,0 +1,68 @@
+name: deploy preview on vercel
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+      id-token: write
+      actions: write
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Create a website
+        run: mkdir -p build && echo -e "<pre>$(date -u)\n$GITHUB_SHA\n$GITHUB_REF</pre>" > build/index.html
+
+      - name: Deploy to Vercel
+        id: deploy-to-vercel
+        run: echo "::set-output name=DEPLOYMENT_URL::$(npx vercel --token ${VERCEL_TOKEN})"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Find Comment
+        if: success() && github.event.number
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "<!-- VERCEL_DEPLOY_LOG -->"
+
+      - name: Create comment
+        if: success() && github.event.number && steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            <!-- VERCEL_DEPLOY_LOG -->
+            ### <span aria-hidden="true">✅</span> Deploy Preview ready!
+            |  Name | Link |
+            |---------------------------------|------------------------|
+            |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
+            |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/runs/${{ github.run_id }}?check_suite_focus=true |
+
+      - name: Update comment
+        if: success() && github.event.number && steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            <!-- VERCEL_DEPLOY_LOG -->
+            ### <span aria-hidden="true">✅</span> Deploy Preview ready!
+            |  Name | Link |
+            |---------------------------------|------------------------|
+            |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
+            |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/runs/${{ github.run_id }}?check_suite_focus=true |
