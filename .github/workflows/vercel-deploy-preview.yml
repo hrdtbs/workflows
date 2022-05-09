@@ -29,6 +29,14 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
+      - name: Get Deployment
+        id: vercel-deployment
+        run: |
+          developmentUrl=${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}
+          echo "::set-output name=DEPLOYMENT::$(curl -X GET https://api.vercel.com/v11/now/deployments/get?url=${developmentUrl#*//} -H 'Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}' -H 'Content-Type: application/json')"
+
+      - run: echo ${{ steps.vercel-deployment.outputs.DEPLOYMENT }}
+
       - name: Find Comment
         if: success() && github.event.number
         uses: peter-evans/find-comment@v2
