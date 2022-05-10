@@ -4,6 +4,13 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - "**.js"
+      - "**.ts"
+      - "**.tsx"
+      - "**.json"
+      - ".github/workflows/vercel-deploy-preview.yml"
+
 jobs:
   build:
     runs-on: ubuntu-latest
