@@ -29,13 +29,15 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
-      - name: Get Deployment
-        id: vercel-deployment
+      - name: Set Enviroment
         run: |
           developmentUrl=${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}          
-          echo "::set-output name=DEPLOYMENT::$(curl -X GET https://api.vercel.com/v11/now/deployments/get?url=${developmentUrl#*//} -H 'Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}' -H 'Content-Type: application/json')"
+          echo "VERCEL_DEPLOYMENT=$(curl -X GET https://api.vercel.com/v11/now/deployments/get?url=${developmentUrl#*//} -H 'Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}' -H 'Content-Type: application/json')" >> $GITHUB_ENV
           echo "RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-      - run: echo ${{ steps.vercel-deployment.outputs.DEPLOYMENT }}
+
+      - name: show env.VERCEL_DEPLOYMENT
+        run: echo ${{ env.VERCEL_DEPLOYMENT }}
+
       - name: Find Comment
         if: success() && github.event.number
         uses: peter-evans/find-comment@v2
@@ -57,6 +59,8 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
+            |<span aria-hidden="true">😎</span> Preview Alias | ${{ fromJson(env.VERCEL_DEPLOYMENT).alias }}|
+            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
 
       - name: Update comment
@@ -72,4 +76,6 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
+            |<span aria-hidden="true">😎</span> Preview Alias | ${{ fromJson(env.VERCEL_DEPLOYMENT).alias }}|
+            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
