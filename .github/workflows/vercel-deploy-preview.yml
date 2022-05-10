@@ -76,6 +76,6 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">😎</span> Preview Alias | ${{ fromJson(env.VERCEL_DEPLOYMENT).alias }}|
+            |<span aria-hidden="true">😎</span> Preview Alias | ${{ join(fromJson(env.VERCEL_DEPLOYMENT).alias, '<br/>') }}|
             |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
