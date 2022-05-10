@@ -18,19 +18,31 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
 
+      - name: Set Run URL
+        run: echo "RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
       - name: Create a website
         run: mkdir -p build && echo -e "<pre>$(date -u)\n$GITHUB_SHA\n$GITHUB_REF</pre>" > build/index.html
 
       - name: Deploy to Vercel
         id: deploy-to-vercel
-        run: echo "::set-output name=DEPLOYMENT_URL::$(npx vercel --token ${VERCEL_TOKEN})"
+        run: |
+          echo "::set-output name=DEPLOYMENT_URL::$(npx vercel --token ${VERCEL_TOKEN})"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
+      - name: Set Vercel Development
+        run: |
+          developmentUrl=${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}          
+          echo "VERCEL_DEPLOYMENT=$(curl -X GET https://api.vercel.com/v11/now/deployments/get?url=${developmentUrl#*//} -H 'Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}' -H 'Content-Type: application/json')" >> $GITHUB_ENV
+
+      - name: show env.VERCEL_DEPLOYMENT
+        run: echo ${{ env.VERCEL_DEPLOYMENT }}
+
       - name: Find Comment
-        if: success() && github.event.number
+        if: github.event.number
         uses: peter-evans/find-comment@v2
         id: fc
         with:
@@ -50,7 +62,9 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+            |<span aria-hidden="true">😎</span> Preview Alias | ${{ fromJson(env.VERCEL_DEPLOYMENT).alias }}|
+            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
 
       - name: Update comment
         if: success() && github.event.number && steps.fc.outputs.comment-id != ''
@@ -65,4 +79,19 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">⚙</span> Run URL | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+            |<span aria-hidden="true">😎</span> Preview Alias | https://${{ join(fromJson(env.VERCEL_DEPLOYMENT).alias, '<br/>https://') }}|
+            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
+
+      - name: Create comment
+        if: failure() && github.event.number
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            <!-- VERCEL_DEPLOY_LOG -->
+            ### <span aria-hidden="true">❌</span> Failed Deploy Preview !
+            |  Name | Link |
+            |---------------------------------|------------------------|
+            |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
