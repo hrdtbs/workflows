@@ -93,7 +93,6 @@ jobs:
             |  Name | Link |
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
-            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
 
       - name: Update comment
@@ -108,5 +107,4 @@ jobs:
             |  Name | Link |
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
-            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
