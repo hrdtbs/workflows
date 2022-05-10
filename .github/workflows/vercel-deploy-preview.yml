@@ -23,7 +23,9 @@ jobs:
 
       - name: Deploy to Vercel
         id: deploy-to-vercel
-        run: echo "::set-output name=DEPLOYMENT_URL::$(npx vercel --token ${VERCEL_TOKEN})"
+        run: |
+          echo "::set-output name=DEPLOYMENT_URL::$(npx vercel --token ${VERCEL_TOKEN})"
+          exit 1
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -39,7 +41,7 @@ jobs:
         run: echo ${{ env.VERCEL_DEPLOYMENT }}
 
       - name: Find Comment
-        if: success() && github.event.number
+        if: github.event.number
         uses: peter-evans/find-comment@v2
         id: fc
         with:
@@ -77,5 +79,34 @@ jobs:
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
             |<span aria-hidden="true">😎</span> Preview Alias | https://${{ join(fromJson(env.VERCEL_DEPLOYMENT).alias, '<br/>https://') }}|
+            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
+
+      - name: Create comment
+        if: failure() && github.event.number && steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            <!-- VERCEL_DEPLOY_LOG -->
+            ### <span aria-hidden="true">❌</span> Failed Deploy Preview !
+            |  Name | Link |
+            |---------------------------------|------------------------|
+            |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
+            |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
+            |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
+
+      - name: Update comment
+        if: failure() && github.event.number && steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            <!-- VERCEL_DEPLOY_LOG -->
+            ### <span aria-hidden="true">❌</span> Failed Deploy Preview!
+            |  Name | Link |
+            |---------------------------------|------------------------|
+            |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
