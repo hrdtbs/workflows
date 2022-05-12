@@ -1,0 +1,14 @@
+name: generate-release-notes-body
+
+on: pull_request
+
+jobs:
+    generate-release-notes-body:
+        runs-on: ubuntu-latest
+        if: startsWith(github.head_ref, 'dependabot') != true
+        steps:
+            - uses: actions/checkout@v2
+            - uses: matsuri-tech/generate-release-notes-body-based-on-pull-requests@v1
+              with:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RELEASE_PREFIX: "Release Note"
