@@ -1,5 +1,5 @@
 {
-  "name": "@hrdtbs/workflows",
+  "name": "h2wf",
   "version": "0.0.0",
   "main": "index.js",
   "repository": "https://github.com/hrdtbs/workflows.git",
@@ -8,8 +8,7 @@
     "build": "tsc"
   },
   "bin": {
-    "@hrdtbs/workflows": "index.js",
-    "wf": "index.js"
+    "h2wf": "index.js"
   },
   "files": [
     "index.js",
