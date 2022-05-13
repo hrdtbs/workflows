@@ -1,0 +1,21 @@
+{
+  "name": "h2wf",
+  "version": "0.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/hrdtbs/workflows.git",
+  "author": "hrdtbs <harada.tsubasa.0422@gmail.com>",
+  "scripts": {
+    "build": "tsc"
+  },
+  "bin": {
+    "h2wf": "index.js"
+  },
+  "files": [
+    "index.js",
+    "/.github/workflows/"
+  ],
+  "devDependencies": {
+    "@types/node": "^17.0.33",
+    "typescript": "^4.6.4"
+  }
+}
