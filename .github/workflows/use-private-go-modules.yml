@@ -1,0 +1,18 @@
+name: Use private go modules
+
+on: pull_request
+
+jobs:
+  go-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Set github private modules access
+        run: git config --global url."https://${{ secrets.REPO_ONLY_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: "./go.mod"
+      - name: Go run
+        run: go run main.go
