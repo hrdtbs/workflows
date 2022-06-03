@@ -1,0 +1,49 @@
+name: Figma components to SVG & React components
+on: workflow_dispatch
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Figma components to SVG
+        uses: hrdtbs/figma2svg@main
+        with:
+          token: ${{ secrets.FIGMA_TOKEN }}
+          id: 7DMwX32ceqkPjENx1xSS5G
+          output: svg
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Cache node_modules
+        id: node_modules_cache_id
+        uses: actions/cache@v2
+        with:
+          key: node-${{ matrix.node-version }}-deps-${{ hashFiles(format('{0}{1}', github.workspace, '/yarn.lock')) }}
+          path: |
+            node_modules
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: SVG to React components
+        run: npx svgr svg/**/*.svg --out-dir src
+
+      - name: Create commits
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add .
+          git commit -m 'feat(svg): update'
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: "feat(svg): update"
+          branch: "svg/${{ github.run_id }}-${{ github.run_attempt }}"
