@@ -1,6 +1,6 @@
-# workflows
+# [workflows](https://github.com/hrdtbs/workflows/tree/main/.github/workflows)
 
-## My Actions
+## actions
 
 
 - [generate-release-notes-body-based-on-pull-requests](https://github.com/matsuri-tech/generate-release-notes-body-based-on-pull-requests)
