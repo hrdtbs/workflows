@@ -42,10 +42,11 @@ jobs:
 
       - name: Alias the deployment
         run: |
-          npx vercel alias set ${DEPLOYMENT_URL#*//} preview-${ISSUE_NUMBER}
+          npx vercel alias set ${DEPLOYMENT_URL#*//} preview-${ISSUE_NUMBER} --token ${VERCEL_TOKEN}
         env:
           DEPLOYMENT_URL: ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}
           ISSUE_NUMBER: ${{ github.event.number }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Set Vercel Development
         run: |
