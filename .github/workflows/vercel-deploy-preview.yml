@@ -40,13 +40,19 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
+      - run: |
+          REPOSITORY_NAME=${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}
+          echo "ALIAS_URL=${GITHUB_REPOSITORY_OWNER}-${REPOSITORY_NAME}-preview-${ISSUE_NUMBER}" >> $GITHUB_ENV
+        env:
+          ISSUE_NUMBER: ${{ github.event.number }}
+
       - name: Alias the deployment
         run: |
-          npx vercel alias set ${DEPLOYMENT_URL#*//} preview-${ISSUE_NUMBER} --token ${VERCEL_TOKEN}
+          npx vercel alias set ${DEPLOYMENT_URL#*//} ${ALIAS_URL} --token ${VERCEL_TOKEN}
         env:
           DEPLOYMENT_URL: ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}
-          ISSUE_NUMBER: ${{ github.event.number }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          ALIAS_URL: ${{ env.ALIAS_URL }}
 
       - name: Set Vercel Development
         run: |
@@ -77,7 +83,7 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">😎</span> Preview Alias | ${{ fromJson(env.VERCEL_DEPLOYMENT).alias }}|
+            |<span aria-hidden="true">😎</span> Preview Alias | https://${{ env.ALIAS_URL }}.vercel.app|
             |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
 
@@ -94,7 +100,7 @@ jobs:
             |---------------------------------|------------------------|
             |<span aria-hidden="true">🔨</span> Latest commit | ${{ github.sha }} |
             |<span aria-hidden="true">😎</span> Deploy Preview | ${{ steps.deploy-to-vercel.outputs.DEPLOYMENT_URL }}|
-            |<span aria-hidden="true">😎</span> Preview Alias | https://${{ join(fromJson(env.VERCEL_DEPLOYMENT).alias, '<br/>https://') }}|
+            |<span aria-hidden="true">😎</span> Preview Alias | https://${{ env.ALIAS_URL }}.vercel.app|
             |<span aria-hidden="true">🔍</span> Latest deploy log | ${{ fromJson(env.VERCEL_DEPLOYMENT).inspectorUrl }} |
             |<span aria-hidden="true">⚙</span> Run URL | ${{ env.RUN_URL }} |
 
